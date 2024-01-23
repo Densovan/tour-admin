@@ -1,6 +1,6 @@
 <template>
   <el-menu
-    class="el-menu-vertical-demo w-[300px]"
+    class="el-menu-vertical-demo"
     :router="true"
     :default-active="$route.path"
     :collapse="!isCollapse"
