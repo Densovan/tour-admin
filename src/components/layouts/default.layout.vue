@@ -6,7 +6,12 @@ import { ref } from "vue";
 </script>
 
 <template>
+  <!-- <div class="fixed top-0 z-10 w-full mb-36"> -->
   <Navbar />
+  <!-- </div> -->
+  <!-- <br />
+  <br />
+  <br /> -->
   <div class="flex main-container">
     <el-aside width="250px" class="border-none">
       <el-scrollbar>
@@ -15,11 +20,6 @@ import { ref } from "vue";
     </el-aside>
     <div class="w-full px-4 py-4">
       <RouterView />
-      <!-- <el-container>
-        <el-main class="w-full">
-          <el-scrollbar> <RouterView /></el-scrollbar
-        ></el-main>
-      </el-container> -->
     </div>
   </div>
 </template>

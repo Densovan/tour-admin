@@ -21,14 +21,13 @@
   </div>
   <br />
   <category-create-form @refetch="refetch()" />
-  <div class="h-[800px] overflow-scroll w-full">
+  <div>
     <el-table
       v-loading="isLoadingQuery || isFetching"
       size="large"
       :data="dataTable?.items"
-      style="width: 100%"
+      style="width: 100%; height: 700px"
     >
-      <!-- <el-table-column label="Name" prop="logo" /> -->
       <el-table-column label="icon" prop="logo">
         <template v-slot="{ row }">
           <img :src="row.logo" alt="icon" class="w-[40px] rounded-lg" />
@@ -156,3 +155,11 @@ const handleDelete = (index: number, row: User) => {
 
 // const tableData = computed(() => dataTable.value);
 </script>
+<style scoped>
+.el-table__inner-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+</style>

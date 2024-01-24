@@ -20,36 +20,34 @@
         >
           <el-input size="large" v-model="dynamicValidateForm.name" />
         </el-form-item>
-        <!-- <el-form-item
-        prop="logo"
-        label="Icon"
-        :rules="[
-          {
-            required: true,
-            message: 'Please input category icon',
-            trigger: 'blur',
-          },
-        ]"
-      > -->
-        <el-upload
-          name="image"
-          list-type="picture"
-          ref="upload"
-          class="upload-demo"
-          action="#"
-          :limit="1"
-          :on-exceed="handleExceed"
-          :auto-upload="false"
-          :on-change="handleChange"
+        <el-form-item
+          prop="logo"
+          label="Icon"
+          :rules="[
+            {
+              required: true,
+              message: 'Please input category icon',
+              trigger: 'blur',
+            },
+          ]"
         >
-          <template #trigger>
-            <el-button type="info">select file</el-button>
-          </template>
-          <!-- <el-button class="ml-3" type="success" @click="submitUpload">
-            upload to server
-          </el-button> -->
-        </el-upload>
-        <!-- </el-form-item> -->
+          <el-upload
+            name="image"
+            list-type="picture"
+            ref="upload"
+            class="upload-demo"
+            action="#"
+            :limit="1"
+            :on-exceed="handleExceed"
+            :auto-upload="false"
+            :on-change="handleChange"
+            v-model="dynamicValidateForm.logo"
+          >
+            <template #trigger>
+              <el-button type="info">select file</el-button>
+            </template>
+          </el-upload>
+        </el-form-item>
         <br />
         <el-form-item>
           <el-button
@@ -97,7 +95,7 @@ const dynamicValidateForm = reactive<{
   logo: any | null;
 }>({
   name: "",
-  logo: null,
+  logo: "",
 });
 
 const handleExceed: UploadProps["onExceed"] = (files) => {
@@ -125,6 +123,8 @@ const submitForm = (formEl: FormInstance | undefined) => {
         mutateCreateCategory({ ...dynamicValidateForm, logo: res.data.link });
         emit("refetch");
         formEl.resetFields();
+        dynamicValidateForm.logo = "";
+        upload.value?.clearFiles();
         categoryStore.setToggleCreate(false);
       });
       console.log("submit!");
@@ -148,6 +148,7 @@ const {
     console.log(`rolling back optimistic update with id `);
   },
   onSuccess: async (data: ICategory | any) => {
+    emit("refetch");
     ElMessage({
       message: data?.message,
       type: "success",
