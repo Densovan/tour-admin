@@ -1,12 +1,12 @@
 <template>
   <div>
     <el-dialog
-      v-model="toggleCreate"
+      v-model="toggleEdit"
       title="Add new category"
       width="500"
       style="border-radius: 10px"
     >
-      <el-form :model="dynamicValidateForm" label-position="top" ref="formRef">
+      <el-form :model="currentPointForm" label-position="top" ref="formRef">
         <el-form-item
           prop="name"
           label="Category"
@@ -18,7 +18,7 @@
             },
           ]"
         >
-          <el-input size="large" v-model="dynamicValidateForm.name" />
+          <el-input size="large" v-model.trim="currentPointForm.name" />
         </el-form-item>
         <el-form-item
           prop="logo"
@@ -39,9 +39,9 @@
             action="#"
             :limit="1"
             :on-exceed="handleExceed"
-            :auto-upload="false"
             :on-change="handleChange"
-            v-model="dynamicValidateForm.logo"
+            :auto-upload="false"
+            v-model="currentPointForm.logo"
           >
             <template #trigger>
               <el-button type="info">select file</el-button>
@@ -64,36 +64,40 @@
 
 <script setup lang="ts">
 import { categoryApi, iconUploadApi } from "@/common/api";
-import { CategoryCreate, ICategory } from "@/common/types";
+import { CategoryUpdate, ICategory } from "@/common/types";
 import { useMutation } from "@tanstack/vue-query";
-import type { UploadProps, UploadRawFile } from "element-plus";
+import type { UploadProps, UploadRawFile, UploadUserFile } from "element-plus";
 import {
   ElMessage,
   type FormInstance,
   genFileId,
   UploadInstance,
 } from "element-plus";
-import { reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useCategoryStore } from "@/stores";
 import { storeToRefs } from "pinia";
 
+const newForm = ref({});
 //store import
 const categoryStore = useCategoryStore();
-const { toggleCreate } = storeToRefs(categoryStore);
+const { toggleEdit, currentPointForm, getCurrentPontId } =
+  storeToRefs(categoryStore);
 
 //api imoport
-const { CREATE_CATEGORY } = categoryApi();
+const { UPDATE_CATEGORY } = categoryApi();
 const { ICON_UPLOAD } = iconUploadApi();
 const emit = defineEmits(["refetch"]);
 const upload = ref<UploadInstance>();
 const formRef = ref<FormInstance>();
-const dynamicValidateForm = reactive<{
-  name: string;
-  logo: any | null;
-}>({
-  name: "",
-  logo: "",
-});
+
+watch(
+  () => currentPointForm.value,
+  (val) => {
+    newForm.value["logo"] = currentPointForm.value.logo;
+    newForm.value["name"] = currentPointForm.value.name;
+  }
+  // { deep: true }
+);
 
 const handleExceed: UploadProps["onExceed"] = (files) => {
   upload.value!.clearFiles();
@@ -105,9 +109,9 @@ const handleExceed: UploadProps["onExceed"] = (files) => {
 
 const handleChange: UploadProps["onChange"] = (uploadFile, uploadFiles) => {
   console.log(uploadFile, uploadFiles);
-  if (uploadFiles.length > 0) {
-    dynamicValidateForm.logo = uploadFiles[0].raw;
-  }
+  // if (uploadFiles.length > 0) {
+  //   currentPointForm.logo = uploadFiles[0].raw;
+  // }
 };
 
 const submitForm = (formEl: FormInstance | undefined) => {
@@ -115,22 +119,15 @@ const submitForm = (formEl: FormInstance | undefined) => {
   formEl.validate(async (valid) => {
     if (valid) {
       const formData = new FormData();
-      formData.append("image", dynamicValidateForm.logo);
+      // formData.append("image", currentPointForm.logo);
       const data: any = await ICON_UPLOAD(formData);
-      mutateCreateCategory({ ...dynamicValidateForm, logo: data?.link });
+      mutate({ ...currentPointForm.value });
       formEl.resetFields();
-      dynamicValidateForm.logo = "";
+      // currentPointForm.logo = "";
       upload.value?.clearFiles();
       categoryStore.setToggleCreate(false);
       emit("refetch");
-      // axios.post("http://localhost:4000/upload", formData).then((res) => {
-      // mutateCreateCategory({ ...dynamicValidateForm, logo: res.data.link });
-      // emit("refetch");
-      // formEl.resetFields();
-      // dynamicValidateForm.logo = "";
-      // upload.value?.clearFiles();
-      // categoryStore.setToggleCreate(false);
-      // });
+
       console.log("submit!");
     } else {
       console.log("error submit!");
@@ -139,24 +136,18 @@ const submitForm = (formEl: FormInstance | undefined) => {
   });
 };
 
-const {
-  isPending,
-  isError,
-  isSuccess,
-  data,
-  mutate: mutateCreateCategory,
-} = useMutation({
+const { isPending, mutate } = useMutation({
   mutationKey: ["create-category"],
-  mutationFn: (payload: CategoryCreate) => CREATE_CATEGORY(payload),
-  onError: (error, variables, context) => {
-    console.log(`rolling back optimistic update with id `);
-  },
+  mutationFn: (payload: CategoryUpdate) =>
+    UPDATE_CATEGORY(getCurrentPontId.value, payload),
   onSuccess: async (data: ICategory | any) => {
-    emit("refetch");
     ElMessage({
       message: data?.message,
       type: "success",
     });
+    categoryStore.setToggleEdit(false);
+    categoryStore.setCurrentPointedId("");
+    emit("refetch");
   },
 });
 </script>

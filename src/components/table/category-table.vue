@@ -15,18 +15,21 @@
     <el-button type="primary" button @click="refetch()">
       <div class="flex space-x-1 items-center">
         <Icon width="20" icon="bx:cloud-download" />
-        <p>Refetch</p>
+        <p>Refresh</p>
       </div>
     </el-button>
   </div>
   <br />
   <category-create-form @refetch="refetch()" />
+  <category-edit-form @refetch="refetch()" />
   <div>
+    <!-- {{ item }} -->
     <el-table
       v-loading="isLoadingQuery || isFetching"
       size="large"
-      :data="dataTable?.items"
-      style="width: 100%; height: 700px"
+      :data="categories.items"
+      height="calc(100vh - 230px)"
+      style="width: 100%"
     >
       <el-table-column label="icon" prop="logo">
         <template v-slot="{ row }">
@@ -48,16 +51,18 @@
             placeholder="Type to search"
           />
         </template>
-        <template #default="scope">
-          <el-button size="small" @click="handleEdit(scope.$index, scope.row)"
-            >Edit</el-button
-          >
+        <template v-slot="{ row }">
           <el-button
             size="small"
-            type="danger"
-            @click="handleDelete(scope.$index, scope.row)"
-            >Delete</el-button
+            @click="
+              () => {
+                categoryStore.setToggleEdit(true);
+                categoryStore.setCurrentPointForm(row);
+              }
+            "
+            >Edit</el-button
           >
+          <el-button size="small" type="danger">Delete</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -66,11 +71,11 @@
   <br />
   <div class="float-right">
     <el-pagination
-      v-if="dataTable"
+      v-if="categories"
       :current-page="page"
       :page-sizes="[10, 20, 30, 50]"
       :page-size="limit"
-      :total="dataTable.meta?.totalItems"
+      :total="categories.meta.totalItems"
       @size-change="handlePageSizeChange"
       @current-change="handlePageChange"
       layout="total, sizes, prev, pager, next, jumper"
@@ -92,9 +97,10 @@ import { storeToRefs } from "pinia";
 import "dayjs/locale/km";
 import dayjs from "dayjs";
 import { Icon } from "@iconify/vue";
+import { ICategory } from "@/common";
 //store import
 const categoryStore = useCategoryStore();
-const {} = storeToRefs(categoryStore);
+const { categories } = storeToRefs(categoryStore);
 //api import
 const { CATEGORIES } = categoryApi();
 const page = ref<any>(1);
@@ -106,7 +112,7 @@ const {
   refetch,
   isError: isErrorQuery,
   isLoading: isLoadingQuery,
-  data: dataTable,
+  // data: dataTable,
 } = useQuery({
   queryKey: ["categories", name, page, limit],
   queryFn: () =>
@@ -115,12 +121,9 @@ const {
       limit: limit.value,
       name: name.value,
     }),
-
-  // onSuccess: (res: any) => {
-  //   console.log(res);
-  // },
-  // onError: (error: any) => {},
-  // onSettled: () => {},
+  select: (res: ICategory) => {
+    categoryStore.addCategories(res);
+  },
 });
 
 // const filterTableData = computed(() =>
