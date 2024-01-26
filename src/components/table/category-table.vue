@@ -45,11 +45,7 @@
 
       <el-table-column align="right">
         <template #header>
-          <el-input
-            v-model="search"
-            size="large"
-            placeholder="Type to search"
-          />
+          <el-input v-model="name" size="large" placeholder="Type to search" />
         </template>
         <template v-slot="{ row }">
           <el-button
@@ -126,20 +122,6 @@ const {
   },
 });
 
-// const filterTableData = computed(() =>
-//   tableData.value?.items?.filter(
-//     (data) =>
-//       !search.value ||
-//       data.name.toLowerCase().includes(search.value.toLowerCase())
-//   )
-// );
-// const filterTableData = computed(() =>
-//   dataTable.value?.filter(
-//     (data) =>
-//       !search.value ||
-//       data.name.toLowerCase().includes(search.value.toLowerCase())
-//   )
-// );
 const handlePageSizeChange = (pageSize: number) => {
   limit.value = pageSize;
   refetch();

@@ -33,7 +33,7 @@
         >
           <el-upload
             name="image"
-            list-type="picture"
+            list-type="picture-card"
             ref="upload"
             class="upload-demo"
             action="#"
@@ -41,11 +41,14 @@
             :on-exceed="handleExceed"
             :on-change="handleChange"
             :auto-upload="false"
-            v-model="currentPointForm.logo"
+            :file-list="
+              currentPointForm.logo
+                ? [{ url: currentPointForm.logo }]
+                : ([] as any)
+            "
+            v-model.trim="currentPointForm.logo"
           >
-            <template #trigger>
-              <el-button type="info">select file</el-button>
-            </template>
+            <el-icon><Plus /></el-icon>
           </el-upload>
         </el-form-item>
         <br />
@@ -63,6 +66,7 @@
 </template>
 
 <script setup lang="ts">
+import { Plus } from "@element-plus/icons-vue";
 import { categoryApi, iconUploadApi } from "@/common/api";
 import { CategoryUpdate, ICategory } from "@/common/types";
 import { useMutation } from "@tanstack/vue-query";
@@ -73,7 +77,7 @@ import {
   genFileId,
   UploadInstance,
 } from "element-plus";
-import { computed, reactive, ref, watch } from "vue";
+import { Ref, computed, reactive, ref, watch } from "vue";
 import { useCategoryStore } from "@/stores";
 import { storeToRefs } from "pinia";
 
@@ -90,15 +94,6 @@ const emit = defineEmits(["refetch"]);
 const upload = ref<UploadInstance>();
 const formRef = ref<FormInstance>();
 
-watch(
-  () => currentPointForm.value,
-  (val) => {
-    newForm.value["logo"] = currentPointForm.value.logo;
-    newForm.value["name"] = currentPointForm.value.name;
-  }
-  // { deep: true }
-);
-
 const handleExceed: UploadProps["onExceed"] = (files) => {
   upload.value!.clearFiles();
   const file = files[0] as UploadRawFile;
@@ -108,23 +103,39 @@ const handleExceed: UploadProps["onExceed"] = (files) => {
 };
 
 const handleChange: UploadProps["onChange"] = (uploadFile, uploadFiles) => {
-  console.log(uploadFile, uploadFiles);
-  // if (uploadFiles.length > 0) {
-  //   currentPointForm.logo = uploadFiles[0].raw;
-  // }
+  // console.log(uploadFile, uploadFiles);
+  if (uploadFiles.length > 0) {
+    (currentPointForm as any).logo = uploadFiles[0].raw;
+  }
 };
+
+// const newForm:Ref<ICategory> = ref({});
+
+// watch(
+//   () => currentPointForm.value,
+//   (val) => {
+//     newForm.value["name"] = currentPointForm.value.name;
+//     newForm.value["logo"] = currentPointForm.value.logo;
+//   },
+//   {
+//     deep: true,
+//   }
+// );
 
 const submitForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.validate(async (valid) => {
     if (valid) {
       const formData = new FormData();
-      // formData.append("image", currentPointForm.logo);
+      formData.append("image", (currentPointForm as any).logo);
       const data: any = await ICON_UPLOAD(formData);
-      mutate({ ...currentPointForm.value });
+      mutate({
+        ...(currentPointForm.value as CategoryUpdate),
+        logo: data.link || currentPointForm.value.logo,
+      });
       formEl.resetFields();
       // currentPointForm.logo = "";
-      upload.value?.clearFiles();
+      // upload.value?.clearFiles();
       categoryStore.setToggleCreate(false);
       emit("refetch");
 

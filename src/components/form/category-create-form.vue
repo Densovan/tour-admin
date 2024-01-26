@@ -33,7 +33,7 @@
         >
           <el-upload
             name="image"
-            list-type="picture"
+            list-type="picture-card"
             ref="upload"
             class="upload-demo"
             action="#"
@@ -43,9 +43,7 @@
             :on-change="handleChange"
             v-model="dynamicValidateForm.logo"
           >
-            <template #trigger>
-              <el-button type="info">select file</el-button>
-            </template>
+            <el-icon><Plus /></el-icon>
           </el-upload>
         </el-form-item>
         <br />
@@ -63,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import { Plus } from "@element-plus/icons-vue";
 import { categoryApi, iconUploadApi } from "@/common/api";
 import { CategoryCreate, ICategory } from "@/common/types";
 import { useMutation } from "@tanstack/vue-query";

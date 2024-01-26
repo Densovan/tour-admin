@@ -9,9 +9,9 @@ interface State {
   setCurrentId: string;
   currentPointedId: string;
   currentPointForm: {
-    _id: string | undefined;
-    logo: string | undefined;
-    name: string | undefined;
+    _id?: string | undefined;
+    logo?: string | undefined;
+    name?: string | undefined;
   };
 }
 
