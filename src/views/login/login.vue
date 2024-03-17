@@ -54,13 +54,13 @@
 </template>
 
 <script lang="ts" setup>
-import { nextTick, reactive, ref } from "vue";
-import type { FormInstance } from "element-plus";
-import { useUserRequest } from "@/common/api";
-import { useAuthStore } from "@/stores/auth";
-import { useMutation } from "@tanstack/vue-query";
-import type { AuthLoginForm } from "../../common/types";
-import router from "@/router";
+import { nextTick, reactive, ref } from 'vue';
+import type { FormInstance } from 'element-plus';
+import { useUserRequest } from '@/common/api';
+import { useAuthStore } from '@/stores/auth';
+import { useMutation } from '@tanstack/vue-query';
+import type { AuthLoginForm } from '../../common/types';
+import router from '@/router';
 
 const { POST_LOGIN } = useUserRequest();
 const authStore = useAuthStore();
@@ -69,8 +69,8 @@ const dynamicValidateForm = reactive<{
   password: string;
   email: string;
 }>({
-  password: "",
-  email: "",
+  password: '',
+  email: '',
 });
 
 const {
@@ -80,11 +80,12 @@ const {
   data,
   mutate: mutateLogin,
 } = useMutation({
-  mutationKey: ["login"],
+  mutationKey: ['login'],
   mutationFn: (payload: AuthLoginForm) => POST_LOGIN(payload),
   onSuccess: async (data) => {
+    console.log(data, '==d=ata, login');
     authStore.setAuthToken(data.accessToken, data.refreshToken);
-    nextTick(() => router.push("/"));
+    nextTick(() => router.push('/'));
   },
 });
 const submitForm = (formEl: FormInstance | undefined) => {
@@ -92,9 +93,9 @@ const submitForm = (formEl: FormInstance | undefined) => {
   formEl.validate((valid) => {
     if (valid) {
       mutateLogin(dynamicValidateForm);
-      console.log("submit!");
+      console.log('submit!');
     } else {
-      console.log("error submit!");
+      console.log('error submit!');
       return false;
     }
   });

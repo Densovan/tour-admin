@@ -1,87 +1,133 @@
-import { useAuthStore } from "@/stores/auth";
-import axios from "axios";
-import { storeToRefs } from "pinia";
+import { useAuthStore } from '@/stores/auth';
+import axios, { AxiosRequestConfig } from 'axios';
+import { storeToRefs } from 'pinia';
+import { CredentialType } from '../types/keyword.type';
 
 const TimeoutRequest = 5000;
+interface RetryQueueItem {
+  resolve: (value?: any) => void;
+  reject: (error?: any) => void;
+  config: AxiosRequestConfig;
+}
 
-//create an axios instance
+// Create an axios instance
 const request = axios.create({
   baseURL: import.meta.env.VITE_BASE_API_URL,
   timeout: TimeoutRequest,
 });
 
-//Add request interceptor
+// Queue to hold requests awaiting token refresh
+const refreshAndRetryQueue: RetryQueueItem[] = [];
+let isRefreshing = false;
+
+// Add request interceptor
 request.interceptors.request.use(
   function (config) {
-    //Do something before request is sent
-    config.headers["Access-Control-Allow-Headers"] = "*";
-    config.headers["Access-Control-Allow-Headers"] = "Accept";
+    // Do something before request is sent
+    config.headers['Access-Control-Allow-Headers'] = '*';
+    config.headers['Access-Control-Allow-Headers'] = 'Accept';
 
     const authStore = useAuthStore();
-    const { accessToken, isAuthenticated } = storeToRefs(authStore);
+    const { accessToken, isAuthenticated, refreshToken } =
+      storeToRefs(authStore);
 
-    if (isAuthenticated.value) {
-      config.headers["Authorization"] = `Bearer ${accessToken.value}`;
-    }
+    // Add Authorization header if user is authenticated
+    // if (isAuthenticated.value) {
+    config.headers['Authorization'] = `Bearer ${accessToken.value}`;
+    // }
+
     return config;
   },
   function (error) {
-    //Do something with request error
+    // Do something with request error
     return Promise.reject(error);
   }
 );
 
-//Add a response interceptor
+// Add response interceptor
 request.interceptors.response.use(
   function (response) {
     // Any status code that lie within the range of 2xx cause this function to trigger
-    //So something with response data
-    const res = response?.data;
-    return res;
+    // Do something with response data
+    return response.data;
   },
-  function (error) {
-    console.log("====error====", error.code);
-    const errorResponse = error.response?.data;
-    //401 Unauthorized - case 1: token expired, case 2:token invalid
-    if (errorResponse?.statusCode === 401) {
-      const authStore = useAuthStore();
-      const { refreshToken } = authStore;
-      console.log(refreshToken, "refreshtoken===");
-      const requestOption = {
-        method: "GET",
-        url: `${import.meta.env.VITE_BASE_API_URL}/auth/refresh`,
-        data: {
-          grant_type: "refresh_token",
-          refresh_token: refreshToken,
-        },
-      };
+  async function (error) {
+    // Handle response errors
+    console.log(error, 'error====');
+    const originalConfig: AxiosRequestConfig | any = error.config;
 
-      axios(requestOption)
-        .then((res) => {
-          //if refresh token is valid then get new access token and retry request
-          if (res.data) {
-            authStore.setAuthToken(res.data.accessToken, res.data.refreshToken);
-            const newRequestConfig = { ...error.config };
-            newRequestConfig.headers["Authorization"] =
-              `Bearer ${res.data.accessToken}`;
-            request.request(newRequestConfig);
-          }
-        })
-        .catch((error) => {
-          authStore.clearAuthToken();
+    // If token has expired and it's not already refreshing
+    if (
+      error.response &&
+      error.response.status == 401 &&
+      !originalConfig._retry
+    ) {
+      originalConfig._retry = true;
 
-          // return Promise.reject(error);
+      // If not already refreshing, initiate token refresh
+      if (!isRefreshing) {
+        isRefreshing = true;
+
+        try {
+          // Refresh token
+          const refreshedToken = await refreshToken();
+          // Retry failed request with new token
+          error.config.headers['Authorization'] = `Bearer ${refreshedToken}`;
+          return axios(originalConfig);
+        } catch (refreshError) {
+          // Handle token refresh error
+          console.error('Error refreshing token:', refreshError);
+          return Promise.reject(refreshError);
+        } finally {
+          // Reset refreshing flag
+          isRefreshing = false;
+        }
+      } else {
+        // If already refreshing, queue the request
+        return new Promise((resolve, reject) => {
+          refreshAndRetryQueue.push({
+            config: originalConfig,
+            resolve,
+            reject,
+          });
         });
+      }
     }
 
-    //Any status  codes that falls outside the range of 2xx cause function to tirgger
-    //Do something with response error
-    console.log(error);
-    if (error.code === "ERR_NETWORK") {
-      return Promise.reject({
-        message: "Error Network Connection",
-      });
+    // Handle other types of errors
+    if (error.response && error.response.status == 403) {
+      console.log('error 2');
+      // Handle 403 error
     }
+
+    return Promise.reject(error);
   }
 );
+
+// Function to refresh token
+async function refreshToken() {
+  const authStore = useAuthStore();
+  const { refreshToken } = storeToRefs(authStore);
+
+  try {
+    // Call your API to refresh token
+    const response = await axios.get(
+      `${import.meta.env.VITE_BASE_API_URL}/auth/refresh`,
+      {
+        headers: {
+          Authorization: `Bearer ${refreshToken.value}`,
+        },
+      }
+    );
+
+    // Update token in local storage
+    const newAccessToken = response.data.accessToken;
+    localStorage.setItem(CredentialType.ACCESS_TOKEN, newAccessToken);
+    return newAccessToken;
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    throw error;
+  }
+}
+
 export default request;

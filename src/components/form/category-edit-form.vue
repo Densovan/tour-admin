@@ -66,20 +66,20 @@
 </template>
 
 <script setup lang="ts">
-import { Plus } from "@element-plus/icons-vue";
-import { categoryApi, iconUploadApi } from "@/common/api";
-import { CategoryUpdate, ICategory } from "@/common/types";
-import { useMutation } from "@tanstack/vue-query";
-import type { UploadProps, UploadRawFile, UploadUserFile } from "element-plus";
+import { Plus } from '@element-plus/icons-vue';
+import { categoryApi, iconUploadApi } from '@/common/api';
+import { CategoryUpdate, ICategory } from '@/common/types';
+import { useMutation } from '@tanstack/vue-query';
+import type { UploadProps, UploadRawFile, UploadUserFile } from 'element-plus';
 import {
   ElMessage,
   type FormInstance,
   genFileId,
   UploadInstance,
-} from "element-plus";
-import { Ref, computed, reactive, ref, watch } from "vue";
-import { useCategoryStore } from "@/stores";
-import { storeToRefs } from "pinia";
+} from 'element-plus';
+import { Ref, computed, reactive, ref, watch } from 'vue';
+import { useCategoryStore } from '@/stores';
+import { storeToRefs } from 'pinia';
 
 const newForm = ref({});
 //store import
@@ -90,11 +90,11 @@ const { toggleEdit, currentPointForm, getCurrentPontId } =
 //api imoport
 const { UPDATE_CATEGORY } = categoryApi();
 const { ICON_UPLOAD } = iconUploadApi();
-const emit = defineEmits(["refetch"]);
+const emit = defineEmits(['refetch']);
 const upload = ref<UploadInstance>();
 const formRef = ref<FormInstance>();
 
-const handleExceed: UploadProps["onExceed"] = (files) => {
+const handleExceed: UploadProps['onExceed'] = (files) => {
   upload.value!.clearFiles();
   const file = files[0] as UploadRawFile;
   file.uid = genFileId();
@@ -102,7 +102,7 @@ const handleExceed: UploadProps["onExceed"] = (files) => {
   console.log(upload.value);
 };
 
-const handleChange: UploadProps["onChange"] = (uploadFile, uploadFiles) => {
+const handleChange: UploadProps['onChange'] = (uploadFile, uploadFiles) => {
   // console.log(uploadFile, uploadFiles);
   if (uploadFiles.length > 0) {
     (currentPointForm as any).logo = uploadFiles[0].raw;
@@ -127,7 +127,7 @@ const submitForm = (formEl: FormInstance | undefined) => {
   formEl.validate(async (valid) => {
     if (valid) {
       const formData = new FormData();
-      formData.append("image", (currentPointForm as any).logo);
+      formData.append('image', (currentPointForm as any).logo);
       const data: any = await ICON_UPLOAD(formData);
       mutate({
         ...(currentPointForm.value as CategoryUpdate),
@@ -137,28 +137,29 @@ const submitForm = (formEl: FormInstance | undefined) => {
       // currentPointForm.logo = "";
       // upload.value?.clearFiles();
       categoryStore.setToggleCreate(false);
-      emit("refetch");
+      emit('refetch');
 
-      console.log("submit!");
+      console.log('submit!');
     } else {
-      console.log("error submit!");
+      console.log('error submit!');
       return false;
     }
   });
 };
 
 const { isPending, mutate } = useMutation({
-  mutationKey: ["create-category"],
+  mutationKey: ['create-category'],
   mutationFn: (payload: CategoryUpdate) =>
     UPDATE_CATEGORY(getCurrentPontId.value, payload),
   onSuccess: async (data: ICategory | any) => {
+    console.log(data, 'data======');
     ElMessage({
-      message: data?.message,
-      type: "success",
+      message: data.data.message,
+      type: 'success',
     });
     categoryStore.setToggleEdit(false);
-    categoryStore.setCurrentPointedId("");
-    emit("refetch");
+    categoryStore.setCurrentPointedId('');
+    emit('refetch');
   },
 });
 </script>
