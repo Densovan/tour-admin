@@ -1,10 +1,11 @@
-import { ICategory, IItemsCategory } from "./../common/types/category.type";
-import { defineStore } from "pinia";
+import { ICategory, IItemsCategory } from './../common/types/category.type';
+import { defineStore } from 'pinia';
 
 interface State {
   categories: ICategory;
   toggleCreate: boolean;
   toggleEdit: boolean;
+  toggleDelete: boolean;
   toggleView: boolean;
   setCurrentId: string;
   currentPointedId: string;
@@ -15,7 +16,7 @@ interface State {
   };
 }
 
-export const useCategoryStore = defineStore("category", {
+export const useCategoryStore = defineStore('category', {
   state: (): State => ({
     categories: {
       items: [],
@@ -27,19 +28,20 @@ export const useCategoryStore = defineStore("category", {
     },
     toggleCreate: false,
     toggleEdit: false,
+    toggleDelete: false,
     toggleView: false,
-    setCurrentId: "",
+    setCurrentId: '',
     currentPointForm: {
-      _id: "",
-      logo: "",
-      name: "",
+      _id: '',
+      logo: '',
+      name: '',
     },
-    currentPointedId: "",
+    currentPointedId: '',
   }),
 
   getters: {
     getCurrentPontId(state): string {
-      return state.currentPointForm?._id || "";
+      return state.currentPointForm?._id || '';
     },
   },
   actions: {
@@ -52,6 +54,11 @@ export const useCategoryStore = defineStore("category", {
     },
     setToggleEdit(toggleEdit: boolean): void {
       this.toggleEdit = toggleEdit;
+    },
+
+    setToggleDelete(toggleDelete: boolean): void {
+      console.log(toggleDelete, 'toggleDelete');
+      this.toggleDelete = toggleDelete;
     },
 
     addCategories(categories: ICategory): void {

@@ -61,20 +61,20 @@
 </template>
 
 <script setup lang="ts">
-import { Plus } from "@element-plus/icons-vue";
-import { categoryApi, iconUploadApi } from "@/common/api";
-import { CategoryCreate, ICategory } from "@/common/types";
-import { useMutation } from "@tanstack/vue-query";
-import type { UploadProps, UploadRawFile } from "element-plus";
+import { Plus } from '@element-plus/icons-vue';
+import { categoryApi, iconUploadApi } from '@/common/api';
+import { CategoryCreate, ICategory } from '@/common/types';
+import { useMutation } from '@tanstack/vue-query';
+import type { UploadProps, UploadRawFile } from 'element-plus';
 import {
   ElMessage,
   type FormInstance,
   genFileId,
   UploadInstance,
-} from "element-plus";
-import { reactive, ref } from "vue";
-import { useCategoryStore } from "@/stores";
-import { storeToRefs } from "pinia";
+} from 'element-plus';
+import { reactive, ref } from 'vue';
+import { useCategoryStore } from '@/stores';
+import { storeToRefs } from 'pinia';
 
 //store import
 const categoryStore = useCategoryStore();
@@ -83,18 +83,18 @@ const { toggleCreate } = storeToRefs(categoryStore);
 //api imoport
 const { CREATE_CATEGORY } = categoryApi();
 const { ICON_UPLOAD } = iconUploadApi();
-const emit = defineEmits(["refetch"]);
+const emit = defineEmits(['refetch']);
 const upload = ref<UploadInstance>();
 const formRef = ref<FormInstance>();
 const dynamicValidateForm = reactive<{
   name: string;
   logo: any | null;
 }>({
-  name: "",
-  logo: "",
+  name: '',
+  logo: '',
 });
 
-const handleExceed: UploadProps["onExceed"] = (files) => {
+const handleExceed: UploadProps['onExceed'] = (files) => {
   upload.value!.clearFiles();
   const file = files[0] as UploadRawFile;
   file.uid = genFileId();
@@ -102,7 +102,7 @@ const handleExceed: UploadProps["onExceed"] = (files) => {
   console.log(upload.value);
 };
 
-const handleChange: UploadProps["onChange"] = (uploadFile, uploadFiles) => {
+const handleChange: UploadProps['onChange'] = (uploadFile, uploadFiles) => {
   console.log(uploadFile, uploadFiles);
   if (uploadFiles.length > 0) {
     dynamicValidateForm.logo = uploadFiles[0].raw;
@@ -114,14 +114,14 @@ const submitForm = (formEl: FormInstance | undefined) => {
   formEl.validate(async (valid) => {
     if (valid) {
       const formData = new FormData();
-      formData.append("image", dynamicValidateForm.logo);
+      formData.append('image', dynamicValidateForm.logo);
       const data: any = await ICON_UPLOAD(formData);
       mutateCreateCategory({ ...dynamicValidateForm, logo: data?.link });
       formEl.resetFields();
-      dynamicValidateForm.logo = "";
+      dynamicValidateForm.logo = '';
       upload.value?.clearFiles();
       categoryStore.setToggleCreate(false);
-      emit("refetch");
+      emit('refetch');
       // axios.post("http://localhost:4000/upload", formData).then((res) => {
       // mutateCreateCategory({ ...dynamicValidateForm, logo: res.data.link });
       // emit("refetch");
@@ -130,9 +130,9 @@ const submitForm = (formEl: FormInstance | undefined) => {
       // upload.value?.clearFiles();
       // categoryStore.setToggleCreate(false);
       // });
-      console.log("submit!");
+      console.log('submit!');
     } else {
-      console.log("error submit!");
+      console.log('error submit!');
       return false;
     }
   });
@@ -145,16 +145,16 @@ const {
   data,
   mutate: mutateCreateCategory,
 } = useMutation({
-  mutationKey: ["create-category"],
+  mutationKey: ['create-category'],
   mutationFn: (payload: CategoryCreate) => CREATE_CATEGORY(payload),
   onError: (error, variables, context) => {
     console.log(`rolling back optimistic update with id `);
   },
   onSuccess: async (data: ICategory | any) => {
-    emit("refetch");
+    emit('refetch');
     ElMessage({
       message: data?.message,
-      type: "success",
+      type: 'success',
     });
   },
 });

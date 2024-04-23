@@ -20,6 +20,7 @@
     </el-button>
   </div>
   <br />
+  <category-delete-toggle @refetch="refetch()" />
   <category-create-form @refetch="refetch()" />
   <category-edit-form @refetch="refetch()" />
   <div>
@@ -39,7 +40,7 @@
       <el-table-column label="Name" prop="name" />
       <el-table-column label="Date" prop="createdAt">
         <template v-slot="{ row }">{{
-          dayjs(row.createdAt).format(" DD-MMM-YYYY HH:mm A")
+          dayjs(row.createdAt).format(' DD-MMM-YYYY HH:mm A')
         }}</template>
       </el-table-column>
 
@@ -58,7 +59,17 @@
             "
             >Edit</el-button
           >
-          <el-button size="small" type="danger">Delete</el-button>
+          <el-button
+            @click="
+              () => {
+                categoryStore.setToggleDelete(true);
+                categoryStore.setCurrentPointForm(row);
+              }
+            "
+            size="small"
+            type="danger"
+            >Delete</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -85,15 +96,15 @@ interface User {
   name: string;
   address: string;
 }
-import { computed, ref } from "vue";
-import { useQuery } from "@tanstack/vue-query";
-import { categoryApi } from "@/common/api";
-import { useCategoryStore } from "@/stores";
-import { storeToRefs } from "pinia";
-import "dayjs/locale/km";
-import dayjs from "dayjs";
-import { Icon } from "@iconify/vue";
-import { ICategory } from "@/common";
+import { computed, ref } from 'vue';
+import { useQuery } from '@tanstack/vue-query';
+import { categoryApi } from '@/common/api';
+import { useCategoryStore } from '@/stores';
+import { storeToRefs } from 'pinia';
+import 'dayjs/locale/km';
+import dayjs from 'dayjs';
+import { Icon } from '@iconify/vue';
+import { ICategory } from '@/common';
 //store import
 const categoryStore = useCategoryStore();
 const { categories } = storeToRefs(categoryStore);
@@ -101,8 +112,8 @@ const { categories } = storeToRefs(categoryStore);
 const { CATEGORIES } = categoryApi();
 const page = ref<any>(1);
 const limit = ref(20);
-const name = ref("");
-const search = ref("");
+const name = ref('');
+const search = ref('');
 const {
   isFetching,
   refetch,
@@ -110,7 +121,7 @@ const {
   isLoading: isLoadingQuery,
   // data: dataTable,
 } = useQuery({
-  queryKey: ["categories", name, page, limit],
+  queryKey: ['categories', name, page, limit],
   queryFn: () =>
     CATEGORIES({
       page: page.value,

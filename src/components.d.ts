@@ -11,6 +11,7 @@ declare module 'vue' {
     BaseSide: typeof import('./components/layouts/BaseSide.vue')['default']
     'Blank.layout': typeof import('./components/layouts/blank.layout.vue')['default']
     CategoryCreateForm: typeof import('./components/form/category-create-form.vue')['default']
+    CategoryDeleteToggle: typeof import('./components/modal/category-delete-toggle.vue')['default']
     CategoryEditForm: typeof import('./components/form/category-edit-form.vue')['default']
     CategoryTable: typeof import('./components/table/category-table.vue')['default']
     'Default.layout': typeof import('./components/layouts/default.layout.vue')['default']
