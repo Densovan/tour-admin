@@ -1,30 +1,42 @@
 <template>
-  <div class="flex items-center space-x-3 float-right">
-    <el-button
-      type="primary"
-      button
-      @click="categoryStore.setToggleCreate(true)"
-    >
-      <div class="flex space-x-1 items-center">
-        <el-icon>
-          <Icon icon="bxs:plus-circle" />
-        </el-icon>
-        <p>Add</p>
+  <div class="flex justify-between">
+    <div>
+      <div>
+        <el-input
+          class="w-[300px]"
+          v-model="name"
+          size="large"
+          placeholder="Type to search"
+        />
       </div>
-    </el-button>
-    <el-button type="primary" button @click="refetch()">
-      <div class="flex space-x-1 items-center">
-        <Icon width="20" icon="bx:cloud-download" />
-        <p>Refresh</p>
-      </div>
-    </el-button>
+    </div>
+    <div class="flex items-center space-x-3 float-right">
+      <el-button
+        type="primary"
+        button
+        @click="categoryStore.setToggleCreate(true)"
+      >
+        <div class="flex space-x-1 items-center">
+          <el-icon>
+            <Icon icon="bxs:plus-circle" />
+          </el-icon>
+          <p>Add</p>
+        </div>
+      </el-button>
+      <el-button type="primary" button @click="refetch()">
+        <div class="flex space-x-1 items-center">
+          <Icon width="20" icon="bx:cloud-download" />
+          <p>Refresh</p>
+        </div>
+      </el-button>
+    </div>
   </div>
   <br />
+
   <category-delete-toggle @refetch="refetch()" />
   <category-create-form @refetch="refetch()" />
   <category-edit-form @refetch="refetch()" />
   <div>
-    <!-- {{ item }} -->
     <el-table
       v-loading="isLoadingQuery || isFetching"
       size="large"
@@ -45,9 +57,9 @@
       </el-table-column>
 
       <el-table-column align="right">
-        <template #header>
+        <!-- <template #header>
           <el-input v-model="name" size="large" placeholder="Type to search" />
-        </template>
+        </template> -->
         <template v-slot="{ row }">
           <el-button
             size="small"

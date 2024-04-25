@@ -12,7 +12,7 @@
           <el-button @click="categoriesStore.setToggleDelete(false)"
             >Cancel</el-button
           >
-          <el-button type="primary" @click="centerDialogVisible = false">
+          <el-button type="primary" @click="mutate(getCurrentPontId)">
             Confirm
           </el-button>
         </div>
@@ -23,11 +23,36 @@
 
 <script lang="ts" setup>
 import { useCategoryStore } from '@/stores/category.store';
+import { CategoryUpdate, ICategory } from '@/common/types';
+import { useMutation } from '@tanstack/vue-query';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
+import { categoryApi } from '@/common';
+import { ElMessage } from 'element-plus';
 const emit = defineEmits(['refetch']);
 const categoriesStore = useCategoryStore();
-const { toggleDelete } = storeToRefs(categoriesStore);
-
+const { toggleDelete, getCurrentPontId } = storeToRefs(categoriesStore);
 const centerDialogVisible = ref(false);
+const { DELETE_CATEGORY } = categoryApi();
+const { isPending, mutate } = useMutation({
+  mutationKey: ['deleteCategory'],
+  mutationFn: (id: string) => DELETE_CATEGORY(id),
+  onMutate: async () => {
+    categoriesStore.setToggleDelete(false);
+    await emit('refetch');
+  },
+  onError: () => {
+    categoriesStore.setToggleDelete(true);
+  },
+  onSuccess: async () => {
+    categoriesStore.setToggleDelete(false);
+    ElMessage({
+      message: 'Delete successfully',
+      type: 'success',
+    });
+  },
+  onSettled: () => {
+    categoriesStore.setToggleDelete(false);
+  },
+});
 </script>

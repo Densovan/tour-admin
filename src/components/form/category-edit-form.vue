@@ -152,7 +152,6 @@ const { isPending, mutate } = useMutation({
   mutationFn: (payload: CategoryUpdate) =>
     UPDATE_CATEGORY(getCurrentPontId.value, payload),
   onSuccess: async (data: ICategory | any) => {
-    console.log(data, 'data======');
     ElMessage({
       message: data.data.message,
       type: 'success',
