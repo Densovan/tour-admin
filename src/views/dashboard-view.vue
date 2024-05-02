@@ -1,50 +1,102 @@
 <template>
-  <el-upload action="#" list-type="picture-card" :auto-upload="false">
-    <el-icon><Plus /></el-icon>
-
-    <template #file="{ file }">
-      <div>
-        <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
-        <span class="el-upload-list__item-actions">
-          <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
-            <el-icon><zoom-in /></el-icon>
-          </span>
-          <span v-if="!disabled" class="el-upload-list__item-delete" @click="handleDownload(file)">
-            <el-icon><Download /></el-icon>
-          </span>
-          <span v-if="!disabled" class="el-upload-list__item-delete" @click="handleRemove(file)">
-            <el-icon><Delete /></el-icon>
-          </span>
-        </span>
+  <span v-if="isPending">{{ loadingInstance }}</span>
+  <span v-else-if="isError">Error: {{ error?.message }}</span>
+  <div v-else>
+    <div class="grid grid-cols-4 gap-4">
+      <div
+        :style="{
+          boxShadow: `var(${getCssVarName('lighter')})`,
+        }"
+        class="p-4 rounded-lg text-red-400"
+      >
+        <div class="flex space-x-3 items-center">
+          <Icon
+            width="4rem"
+            height="4rem"
+            class=""
+            icon="material-symbols:supervised-user-circle"
+          />
+          <div class="leading-0">
+            <h4>Users</h4>
+            <p>{{ dashboard.data.summarize.userCount }}</p>
+          </div>
+        </div>
       </div>
-    </template>
-  </el-upload>
-
-  <el-dialog v-model="dialogVisible">
-    <img w-full :src="dialogImageUrl" alt="Preview Image" />
-  </el-dialog>
-  <el-button type="primary" size="large">CLick</el-button>
+      <div
+        :style="{
+          boxShadow: `var(${getCssVarName('lighter')})`,
+        }"
+        class="p-4 rounded-lg text-red-400"
+      >
+        <div class="flex space-x-3 items-center">
+          <Icon
+            width="4rem"
+            height="4rem"
+            class=""
+            icon="material-symbols:supervised-user-circle"
+          />
+          <div class="leading-0">
+            <h4>Categories</h4>
+            <p>{{ dashboard.data.summarize.categoryCount }}</p>
+          </div>
+        </div>
+      </div>
+      <div
+        :style="{
+          boxShadow: `var(${getCssVarName('lighter')})`,
+        }"
+        class="p-4 rounded-lg text-green-400"
+      >
+        <div class="flex space-x-3 items-center">
+          <Icon
+            width="4rem"
+            height="4rem"
+            class=""
+            icon="material-symbols:supervised-user-circle"
+          />
+          <div class="leading-0">
+            <h4>Tours</h4>
+            <p>{{ dashboard.data.summarize.tourCount }}</p>
+          </div>
+        </div>
+      </div>
+      <div>dfasf</div>
+    </div>
+  </div>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue'
-import { Delete, Download, Plus, ZoomIn } from '@element-plus/icons-vue'
+import { useQuery } from '@tanstack/vue-query';
+import { Icon } from '@iconify/vue';
+import { dashboardApi } from '@/common/api/dashboard-api';
+import { IDashboard } from '@/common';
+import { useDashboardStore } from '@/stores/dashboard.store';
+import { storeToRefs } from 'pinia';
+import { nextTick } from 'vue';
+import { ElLoading } from 'element-plus';
 
-import type { UploadFile } from 'element-plus'
+const loadingInstance = ElLoading.service({ fullscreen: true });
+nextTick(() => {
+  // Loading should be closed asynchronously
+  loadingInstance.close();
+});
+const getCssVarName = (type: string) => {
+  return `--el-box-shadow${type ? '-' : ''}${type}`;
+};
+const { GET_DASHBOARDS } = dashboardApi();
+const dashboardStore = useDashboardStore();
+const { dashboard } = storeToRefs(dashboardStore);
+const { isPending, isError, error } = useQuery({
+  queryKey: ['dashboard'],
+  queryFn: async () => await GET_DASHBOARDS(),
 
-const dialogImageUrl = ref('')
-const dialogVisible = ref(false)
-const disabled = ref(false)
-
-const handleRemove = (file: UploadFile) => {
-  console.log(file)
-}
-
-const handlePictureCardPreview = (file: UploadFile) => {
-  dialogImageUrl.value = file.url!
-  dialogVisible.value = true
-}
-
-const handleDownload = (file: UploadFile) => {
-  console.log(file)
-}
+  select: (res: IDashboard) => {
+    dashboardStore.addDashboardData(res);
+  },
+});
 </script>
+
+<style scoped>
+.border {
+  border: 0.5px solid rgb(229, 79, 79);
+}
+</style>

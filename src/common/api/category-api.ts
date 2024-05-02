@@ -20,7 +20,6 @@ export const categoryApi = () => {
     id: string,
     payload: CategoryUpdate
   ): Promise<string> => {
-    console.log(id, '==id');
     return await request({
       url: `/category/private/update/${id}`,
       method: 'PUT',

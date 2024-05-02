@@ -9,10 +9,17 @@
       <span>Are you sure to delete this category?</span>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="categoriesStore.setToggleDelete(false)"
+          <el-button
+            :disabled="isPending"
+            @click="categoriesStore.setToggleDelete(false)"
             >Cancel</el-button
           >
-          <el-button type="primary" @click="mutate(getCurrentPontId)">
+          <el-button
+            :loading="isPending"
+            :disabled="isPending"
+            type="primary"
+            @click="mutate(getCurrentPontId)"
+          >
             Confirm
           </el-button>
         </div>
@@ -34,22 +41,25 @@ const categoriesStore = useCategoryStore();
 const { toggleDelete, getCurrentPontId } = storeToRefs(categoriesStore);
 const centerDialogVisible = ref(false);
 const { DELETE_CATEGORY } = categoryApi();
-const { isPending, mutate } = useMutation({
+const { isPending, mutate, isSuccess } = useMutation({
   mutationKey: ['deleteCategory'],
   mutationFn: (id: string) => DELETE_CATEGORY(id),
-  onMutate: async () => {
-    categoriesStore.setToggleDelete(false);
-    await emit('refetch');
-  },
+  // onMutate: async () => {
+  //   categoriesStore.setToggleDelete(false);
+  //   // emit('refetch');
+  // },
   onError: () => {
     categoriesStore.setToggleDelete(true);
   },
   onSuccess: async () => {
-    categoriesStore.setToggleDelete(false);
-    ElMessage({
-      message: 'Delete successfully',
-      type: 'success',
-    });
+    if (isSuccess) {
+      ElMessage({
+        message: 'Delete successfully',
+        type: 'success',
+      });
+      emit('refetch');
+      categoriesStore.setToggleDelete(false);
+    }
   },
   onSettled: () => {
     categoriesStore.setToggleDelete(false);
